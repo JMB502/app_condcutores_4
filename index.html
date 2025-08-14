@@ -1,0 +1,1295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Asistencias - Conductores</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Marca de agua */
+        .watermark {
+            position: fixed;
+            bottom: 10px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 8px 15px;
+            border-radius: 25px;
+            font-size: 11px;
+            color: #667eea;
+            font-weight: 600;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            cursor: default;
+            user-select: none;
+            transition: all 0.3s ease;
+        }
+
+        .watermark:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: scale(1.05);
+        }
+
+        .watermark::before {
+            content: "💻";
+            margin-right: 5px;
+        }
+
+        /* Marca de agua adicional en headers */
+        .developer-signature {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 10px;
+            color: rgba(102, 126, 234, 0.7);
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 4px 10px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 900px;
+            width: 90%;
+            margin: 20px;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .login-form, .driver-panel, .admin-panel {
+            display: none;
+        }
+
+        .login-form.active, .driver-panel.active, .admin-panel.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input[type="text"], input[type="password"], select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus, input[type="password"]:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #00b894, #00a085);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #636e72, #2d3436);
+        }
+
+        .clock {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .clock-display {
+            font-size: 3em;
+            font-weight: bold;
+            color: #333;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .status.inactive {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 2px solid #dee2e6;
+        }
+
+        .status.active {
+            background: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+            color: #2d3436;
+            border: 2px solid #00b894;
+        }
+
+        .time-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .time-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .time-card h3 {
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .time-card .time {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .user-list {
+            margin-top: 30px;
+        }
+
+        .user-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 5px solid #667eea;
+            position: relative;
+        }
+
+        .user-item.on-route {
+            border-left: 5px solid #00b894;
+            background: linear-gradient(135deg, #d5f4e6 0%, #f0f9ff 100%);
+        }
+
+        .user-item.off-route {
+            border-left: 5px solid #6c757d;
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-badge.active {
+            background: linear-gradient(45deg, #00b894, #00a085);
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        .status-badge.inactive {
+            background: #6c757d;
+            color: white;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 184, 148, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 184, 148, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 184, 148, 0); }
+        }
+
+        .route-info {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .route-info.active {
+            color: #00b894;
+            font-weight: bold;
+        }
+
+        .user-controls {
+            margin-top: 10px;
+        }
+
+        .records-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .records-table th, .records-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .records-table th {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .records-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .error {
+            color: #e74c3c;
+            text-align: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: #fadbd8;
+            border-radius: 5px;
+        }
+
+        .success {
+            color: #27ae60;
+            text-align: center;
+            margin: 10px 0;
+            padding: 10px;
+            background: #d5f4e6;
+            border-radius: 5px;
+        }
+
+        .user-form {
+            display: none;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .user-form.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+                margin: 5px;
+                max-width: 100%;
+                width: 100%;
+            }
+            
+            .header h1 {
+                font-size: 1.8em;
+            }
+            
+            .clock-display {
+                font-size: 2.2em;
+            }
+            
+            .time-summary {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .time-card {
+                padding: 15px;
+            }
+            
+            .time-card .time {
+                font-size: 1.5em;
+            }
+            
+            .btn {
+                width: 100%;
+                margin: 5px 0;
+                padding: 15px;
+                font-size: 16px;
+            }
+            
+            .user-item {
+                padding: 12px;
+                margin-bottom: 10px;
+            }
+            
+            .status-badge {
+                position: static;
+                display: block;
+                margin: 10px 0;
+                text-align: center;
+            }
+            
+            .user-controls {
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .user-controls .btn {
+                margin: 2px 0;
+            }
+            
+            .route-info {
+                font-size: 12px;
+                line-height: 1.4;
+            }
+            
+            .records-table {
+                font-size: 12px;
+                overflow-x: auto;
+                display: block;
+                white-space: nowrap;
+            }
+            
+            .records-table thead,
+            .records-table tbody,
+            .records-table th,
+            .records-table td,
+            .records-table tr {
+                display: block;
+            }
+            
+            .records-table thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+            
+            .records-table tr {
+                border: 1px solid #ccc;
+                margin-bottom: 10px;
+                padding: 10px;
+                border-radius: 8px;
+                background: white;
+            }
+            
+            .records-table td {
+                border: none;
+                position: relative;
+                padding: 8px 8px 8px 50%;
+                text-align: left !important;
+            }
+            
+            .records-table td:before {
+                content: attr(data-label);
+                position: absolute;
+                left: 6px;
+                width: 45%;
+                padding-right: 10px;
+                white-space: nowrap;
+                font-weight: bold;
+                color: #667eea;
+            }
+            
+            .form-group {
+                margin-bottom: 15px;
+            }
+            
+            input[type="text"], input[type="password"], select {
+                padding: 15px;
+                font-size: 16px;
+            }
+            
+            .user-form {
+                padding: 15px;
+                margin-top: 15px;
+            }
+        }
+
+                    @media (max-width: 480px) {
+            .container {
+                padding: 10px;
+                margin: 2px;
+            }
+            
+            .header h1 {
+                font-size: 1.5em;
+                margin-bottom: 5px;
+            }
+            
+            .header p {
+                font-size: 14px;
+            }
+            
+            .clock-display {
+                font-size: 1.8em;
+            }
+            
+            .time-card h3 {
+                font-size: 1em;
+            }
+            
+            .time-card .time {
+                font-size: 1.3em;
+            }
+            
+            .btn {
+                padding: 12px;
+                font-size: 14px;
+            }
+            
+            .status {
+                padding: 10px;
+                font-size: 14px;
+            }
+            
+            .route-info {
+                font-size: 11px;
+            }
+            
+            .user-item {
+                padding: 10px;
+            }
+            
+            .watermark {
+                font-size: 9px;
+                padding: 6px 10px;
+                bottom: 5px;
+                right: 5px;
+            }
+            
+            .developer-signature {
+                font-size: 8px;
+                padding: 2px 6px;
+                top: 5px;
+                right: 5px;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .container {
+                max-width: 800px;
+            }
+            
+            .time-summary {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .user-controls {
+                display: flex;
+                gap: 10px;
+            }
+            
+            .user-controls .btn {
+                flex: 1;
+                margin: 0;
+            }
+        }
+
+        @media (min-width: 1025px) {
+            .container {
+                max-width: 1000px;
+            }
+            
+            .time-summary {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 25px;
+            }
+            
+            .records-table {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Form -->
+        <div class="login-form active" id="loginForm">
+            <div class="developer-signature">Desarrollado por [TU NOMBRE]</div>
+            <div class="header">
+                <h1>🚛 Control de Conductores</h1>
+                <p>Sistema de Asistencias y Horarios</p>
+            </div>
+            <form id="loginFormElement">
+                <div class="form-group">
+                    <label for="username">Usuario:</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Contraseña:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn">Iniciar Sesión</button>
+                <div id="loginError" class="error" style="display: none;"></div>
+            </form>
+        </div>
+
+        <!-- Driver Panel -->
+        <div class="driver-panel" id="driverPanel">
+            <div class="developer-signature">© [TU NOMBRE] - Dev</div>
+            <div class="header">
+                <h1>Panel del Conductor</h1>
+                <p>Bienvenido, <span id="driverName"></span></p>
+                <button class="btn btn-danger" onclick="logout()">Cerrar Sesión</button>
+            </div>
+
+            <div class="status inactive" id="statusDisplay">
+                Estado: Fuera de Servicio
+            </div>
+
+            <div class="clock">
+                <div class="clock-display" id="clockDisplay">00:00:00</div>
+                <div id="currentTime"></div>
+            </div>
+
+            <div style="text-align: center; margin: 20px 0;">
+                <button class="btn btn-success" id="startRoute" onclick="startRoute()">Iniciar Ruta</button>
+                <button class="btn btn-danger" id="endRoute" onclick="endRoute()" style="display: none;">Finalizar Ruta</button>
+            </div>
+
+            <div class="time-summary" id="timeSummary" style="display: none;">
+                <div class="time-card">
+                    <h3>🌅 Horas Diurnas</h3>
+                    <div class="time" id="dayHours">0:00</div>
+                </div>
+                <div class="time-card">
+                    <h3>🌙 Horas Nocturnas</h3>
+                    <div class="time" id="nightHours">0:00</div>
+                </div>
+                <div class="time-card">
+                    <h3>⏱️ Total Trabajado</h3>
+                    <div class="time" id="totalHours">0:00</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Panel -->
+        <div class="admin-panel" id="adminPanel">
+            <div class="developer-signature">Powered by [TU NOMBRE]</div>
+            <div class="header">
+                <h1>Panel de Administrador</h1>
+                <button class="btn btn-danger" onclick="logout()">Cerrar Sesión</button>
+            </div>
+
+            <div style="text-align: center; margin: 20px 0;">
+                <button class="btn" onclick="toggleUserForm()">+ Agregar Conductor</button>
+                <button class="btn btn-success" onclick="exportToExcel()">📊 Descargar Excel</button>
+            </div>
+
+            <!-- User Form -->
+            <div class="user-form" id="userForm">
+                <h3>Gestión de Conductores</h3>
+                <form id="userFormElement">
+                    <input type="hidden" id="editUserId">
+                    <div class="form-group">
+                        <label for="newUsername">Usuario:</label>
+                        <input type="text" id="newUsername" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">Contraseña:</label>
+                        <input type="password" id="newPassword" name="password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="driverFullName">Nombre Completo:</label>
+                        <input type="text" id="driverFullName" name="fullName" required>
+                    </div>
+                    <button type="submit" class="btn" id="saveUserBtn">Guardar Conductor</button>
+                    <button type="button" class="btn btn-secondary" onclick="toggleUserForm()">Cancelar</button>
+                </form>
+                <div id="userFormError" class="error" style="display: none;"></div>
+                <div id="userFormSuccess" class="success" style="display: none;"></div>
+            </div>
+
+            <!-- Users List -->
+            <div class="user-list">
+                <h3>Conductores Registrados</h3>
+                <div id="usersList"></div>
+            </div>
+
+            <!-- Records Table -->
+            <div style="margin-top: 30px;">
+                <h3>Registros de Asistencias</h3>
+                <table class="records-table" id="recordsTable">
+                    <thead>
+                        <tr>
+                            <th>Conductor</th>
+                            <th>Fecha</th>
+                            <th>Inicio</th>
+                            <th>Fin</th>
+                            <th>H. Diurnas</th>
+                            <th>H. Nocturnas</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recordsTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Marca de agua principal -->
+    <div class="watermark">
+        Desarrollado por [TU NOMBRE] © 2025
+    </div>
+
+    <script>
+        // Datos persistentes
+        function loadData() {
+            const savedUsers = localStorage.getItem('driverApp_users');
+            const savedRecords = localStorage.getItem('driverApp_records');
+            const savedActiveRoutes = localStorage.getItem('driverApp_activeRoutes');
+            
+            return {
+                users: savedUsers ? JSON.parse(savedUsers) : {
+                    'admin': { password: 'admin123', role: 'admin', name: 'Administrador' },
+                    'conductor1': { password: 'pass123', role: 'driver', name: 'Juan Pérez' },
+                    'conductor2': { password: 'pass456', role: 'driver', name: 'María García' }
+                },
+                workRecords: savedRecords ? JSON.parse(savedRecords) : [],
+                activeRoutes: savedActiveRoutes ? JSON.parse(savedActiveRoutes) : {}
+            };
+        }
+
+        function saveData() {
+            localStorage.setItem('driverApp_users', JSON.stringify(users));
+            localStorage.setItem('driverApp_records', JSON.stringify(workRecords));
+            localStorage.setItem('driverApp_activeRoutes', JSON.stringify(activeRoutes));
+        }
+
+        function saveRouteState(username, startTime) {
+            activeRoutes[username] = {
+                startTime: startTime,
+                timestamp: new Date().getTime()
+            };
+            saveData();
+        }
+
+        function clearRouteState(username) {
+            delete activeRoutes[username];
+            saveData();
+        }
+
+        // Inicializar datos
+        const data = loadData();
+        let users = data.users;
+        let workRecords = data.workRecords;
+        let activeRoutes = data.activeRoutes; // Rutas activas por usuario
+        let currentUser = null;
+        let routeStartTime = null;
+        let timerInterval = null;
+
+        // Zona horaria de Colombia
+        const COLOMBIA_TIMEZONE = 'America/Bogota';
+
+        // Horario nocturno: 19:00 a 06:00
+        const NIGHT_START_HOUR = 19;
+        const NIGHT_END_HOUR = 6;
+
+        function getCurrentColombiaTime() {
+            return new Date().toLocaleString("en-US", {timeZone: COLOMBIA_TIMEZONE});
+        }
+
+        function formatTime(date) {
+            return date.toLocaleTimeString('es-CO', { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit',
+                timeZone: COLOMBIA_TIMEZONE
+            });
+        }
+
+        function formatDate(date) {
+            return date.toLocaleDateString('es-CO', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                timeZone: COLOMBIA_TIMEZONE
+            });
+        }
+
+        function isNightTime(date) {
+            const hour = new Date(date).toLocaleString("en-US", {
+                timeZone: COLOMBIA_TIMEZONE,
+                hour: 'numeric',
+                hour12: false
+            });
+            const hourNum = parseInt(hour);
+            return hourNum >= NIGHT_START_HOUR || hourNum < NIGHT_END_HOUR;
+        }
+
+        function calculateWorkingHours(startTime, endTime) {
+            const start = new Date(startTime);
+            const end = new Date(endTime);
+            
+            let dayMinutes = 0;
+            let nightMinutes = 0;
+            
+            // Calcular por intervalos de 1 minuto para mayor precisión
+            let current = new Date(start);
+            while (current < end) {
+                if (isNightTime(current)) {
+                    nightMinutes++;
+                } else {
+                    dayMinutes++;
+                }
+                current.setMinutes(current.getMinutes() + 1);
+            }
+            
+            return {
+                dayHours: Math.floor(dayMinutes / 60),
+                dayMinutes: dayMinutes % 60,
+                nightHours: Math.floor(nightMinutes / 60),
+                nightMinutesRemainder: nightMinutes % 60,
+                totalMinutes: dayMinutes + nightMinutes
+            };
+        }
+
+        function formatDuration(hours, minutes) {
+            return `${hours}:${minutes.toString().padStart(2, '0')}`;
+        }
+
+        // Login functionality
+        document.getElementById('loginFormElement').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (users[username] && users[username].password === password) {
+                currentUser = { username, ...users[username] };
+                document.getElementById('loginForm').classList.remove('active');
+                
+                if (currentUser.role === 'admin') {
+                    document.getElementById('adminPanel').classList.add('active');
+                    loadAdminData();
+                } else {
+                    document.getElementById('driverPanel').classList.add('active');
+                    document.getElementById('driverName').textContent = currentUser.name;
+                    startClock();
+                    
+                    // Verificar si ESTE conductor tiene una ruta activa
+                    if (activeRoutes[username]) {
+                        // Restaurar ruta activa específica de este conductor
+                        routeStartTime = activeRoutes[username].startTime;
+                        const startDate = new Date(routeStartTime);
+                        document.getElementById('statusDisplay').className = 'status active';
+                        document.getElementById('statusDisplay').textContent = 'Estado: En Ruta - ' + formatTime(startDate);
+                        document.getElementById('startRoute').style.display = 'none';
+                        document.getElementById('endRoute').style.display = 'inline-block';
+                        
+                        // Mostrar mensaje de continuación
+                        const timeElapsed = Math.floor((new Date().getTime() - startDate.getTime()) / 1000 / 60);
+                        alert(`¡Ruta activa detectada!\nTiempo acumulado: ${Math.floor(timeElapsed / 60)}h ${timeElapsed % 60}m\n\nIniciada: ${formatTime(startDate)} - ${formatDate(startDate)}\n\n⏰ El reloj ha estado corriendo sin interrupción`);
+                        
+                        // Start timer for this user
+                        timerInterval = setInterval(updateWorkTimer, 1000);
+                    }
+                }
+                
+                // Limpiar formulario
+                document.getElementById('username').value = '';
+                document.getElementById('password').value = '';
+                document.getElementById('loginError').style.display = 'none';
+            } else {
+                document.getElementById('loginError').textContent = 'Usuario o contraseña incorrectos';
+                document.getElementById('loginError').style.display = 'block';
+            }
+        });
+
+        function logout() {
+            // SOLO cambiar la vista, NUNCA tocar timers ni rutas activas
+            currentUser = null;
+            // NO tocar timerInterval - el reloj de otros usuarios debe seguir
+            // NO tocar routeStartTime - la ruta debe seguir activa
+            // NO tocar activeRoutes - todas las rutas siguen corriendo
+            
+            document.getElementById('loginForm').classList.add('active');
+            document.getElementById('driverPanel').classList.remove('active');
+            document.getElementById('adminPanel').classList.remove('active');
+            
+            // Solo resetear la vista visual
+            document.getElementById('statusDisplay').className = 'status inactive';
+            document.getElementById('statusDisplay').textContent = 'Estado: Fuera de Servicio';
+            document.getElementById('startRoute').style.display = 'inline-block';
+            document.getElementById('endRoute').style.display = 'none';
+            document.getElementById('timeSummary').style.display = 'none';
+            
+            // Detener solo el timer visual de la sesión actual
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            
+            // Las rutas de TODOS los conductores siguen corriendo en background
+        }
+
+        // Clock functionality
+        function startClock() {
+            function updateClock() {
+                const now = new Date(getCurrentColombiaTime());
+                document.getElementById('clockDisplay').textContent = formatTime(now);
+                document.getElementById('currentTime').textContent = formatDate(now);
+            }
+            
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+
+        function startRoute() {
+            routeStartTime = getCurrentColombiaTime();
+            
+            // Guardar estado de la ruta activa para ESTE conductor específico
+            saveRouteState(currentUser.username, routeStartTime);
+            
+            document.getElementById('statusDisplay').className = 'status active';
+            document.getElementById('statusDisplay').textContent = 'Estado: En Ruta - ' + formatTime(new Date(routeStartTime));
+            document.getElementById('startRoute').style.display = 'none';
+            document.getElementById('endRoute').style.display = 'inline-block';
+            document.getElementById('timeSummary').style.display = 'none';
+            
+            // Start timer solo para mostrar en pantalla
+            timerInterval = setInterval(updateWorkTimer, 1000);
+        }
+
+        function updateWorkTimer() {
+            if (!routeStartTime) return;
+            
+            const now = getCurrentColombiaTime();
+            const workTime = calculateWorkingHours(routeStartTime, now);
+            
+            document.getElementById('dayHours').textContent = formatDuration(workTime.dayHours, workTime.dayMinutes);
+            document.getElementById('nightHours').textContent = formatDuration(workTime.nightHours, workTime.nightMinutesRemainder);
+            
+            const totalHours = Math.floor(workTime.totalMinutes / 60);
+            const totalMinutes = workTime.totalMinutes % 60;
+            document.getElementById('totalHours').textContent = formatDuration(totalHours, totalMinutes);
+            
+            document.getElementById('timeSummary').style.display = 'grid';
+        }
+
+        function endRoute() {
+            if (!routeStartTime) return;
+            
+            const endTime = getCurrentColombiaTime();
+            const workTime = calculateWorkingHours(routeStartTime, endTime);
+            
+            // Save record
+            const record = {
+                driver: currentUser.name,
+                username: currentUser.username,
+                date: formatDate(new Date(routeStartTime)),
+                startTime: formatTime(new Date(routeStartTime)),
+                endTime: formatTime(new Date(endTime)),
+                dayHours: workTime.dayHours,
+                dayMinutes: workTime.dayMinutes,
+                nightHours: workTime.nightHours,
+                nightMinutes: workTime.nightMinutesRemainder,
+                totalMinutes: workTime.totalMinutes
+            };
+            
+            workRecords.push(record);
+            
+            // AQUÍ SÍ limpiar todo porque la ruta terminó oficialmente
+            clearRouteState(currentUser.username);
+            saveData();
+            
+            // Clear timer
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            
+            // Update UI
+            document.getElementById('statusDisplay').className = 'status inactive';
+            document.getElementById('statusDisplay').textContent = 'Estado: Ruta Finalizada - ' + formatTime(new Date(endTime));
+            document.getElementById('startRoute').style.display = 'inline-block';
+            document.getElementById('endRoute').style.display = 'none';
+            
+            // AQUÍ SÍ limpiar routeStartTime porque la ruta terminó
+            routeStartTime = null;
+            
+            alert(`Ruta finalizada!\n\nHoras Diurnas: ${formatDuration(workTime.dayHours, workTime.dayMinutes)}\nHoras Nocturnas: ${formatDuration(workTime.nightHours, workTime.nightMinutesRemainder)}\nTotal: ${formatDuration(Math.floor(workTime.totalMinutes / 60), workTime.totalMinutes % 60)}`);
+        }
+
+        // Admin functionality
+        function loadAdminData() {
+            loadUsersList();
+            loadRecordsTable();
+            
+            // Actualizar lista cada 5 segundos para mostrar estados en tiempo real
+            setInterval(() => {
+                if (currentUser && currentUser.role === 'admin') {
+                    loadUsersList();
+                }
+            }, 5000);
+        }
+
+        function loadUsersList() {
+            const usersList = document.getElementById('usersList');
+            usersList.innerHTML = '';
+            
+            Object.keys(users).forEach(username => {
+                const user = users[username];
+                if (user.role === 'driver') {
+                    const isOnRoute = activeRoutes[username] ? true : false;
+                    const routeInfo = activeRoutes[username];
+                    
+                    let statusInfo = '';
+                    let routeClass = 'off-route';
+                    let statusBadge = '<span class="status-badge inactive">🔴 Fuera de Servicio</span>';
+                    
+                    if (isOnRoute) {
+                        routeClass = 'on-route';
+                        statusBadge = '<span class="status-badge active">🟢 En Ruta</span>';
+                        
+                        const startTime = new Date(routeInfo.startTime);
+                        const currentTime = new Date();
+                        const elapsedMinutes = Math.floor((currentTime.getTime() - startTime.getTime()) / 1000 / 60);
+                        const elapsedHours = Math.floor(elapsedMinutes / 60);
+                        const elapsedMins = elapsedMinutes % 60;
+                        
+                        const workTime = calculateWorkingHours(routeInfo.startTime, getCurrentColombiaTime());
+                        
+                        statusInfo = `
+                            <div class="route-info active">
+                                <strong>🕐 Inicio:</strong> ${formatTime(startTime)} - ${formatDate(startTime)}<br>
+                                <strong>⏱️ Tiempo Transcurrido:</strong> ${elapsedHours}h ${elapsedMins}m<br>
+                                <strong>🌅 Horas Diurnas:</strong> ${formatDuration(workTime.dayHours, workTime.dayMinutes)} | 
+                                <strong>🌙 Nocturnas:</strong> ${formatDuration(workTime.nightHours, workTime.nightMinutesRemainder)}
+                            </div>
+                        `;
+                    } else {
+                        statusInfo = '<div class="route-info">Sin ruta activa</div>';
+                    }
+                    
+                    const userItem = document.createElement('div');
+                    userItem.className = `user-item ${routeClass}`;
+                    userItem.innerHTML = `
+                        ${statusBadge}
+                        <strong>${user.name}</strong> (${username})
+                        ${statusInfo}
+                        <div class="user-controls">
+                            <button class="btn btn-secondary" onclick="editUser('${username}')">Editar</button>
+                            <button class="btn btn-danger" onclick="deleteUser('${username}')">Eliminar</button>
+                        </div>
+                    `;
+                    usersList.appendChild(userItem);
+                }
+            });
+        }
+
+        function loadRecordsTable() {
+            const tbody = document.getElementById('recordsTableBody');
+            tbody.innerHTML = '';
+            
+            workRecords.slice(-20).reverse().forEach(record => {
+                const row = tbody.insertRow();
+                
+                // Agregar data-labels para responsive
+                const cells = [
+                    { content: record.driver, label: 'Conductor' },
+                    { content: record.date, label: 'Fecha' },
+                    { content: record.startTime, label: 'Inicio' },
+                    { content: record.endTime, label: 'Fin' },
+                    { content: formatDuration(record.dayHours, record.dayMinutes), label: 'H. Diurnas' },
+                    { content: formatDuration(record.nightHours, record.nightMinutes), label: 'H. Nocturnas' },
+                    { content: formatDuration(Math.floor(record.totalMinutes / 60), record.totalMinutes % 60), label: 'Total' }
+                ];
+                
+                cells.forEach(cell => {
+                    const td = row.insertCell();
+                    td.textContent = cell.content;
+                    td.setAttribute('data-label', cell.label);
+                });
+            });
+        }
+
+        function toggleUserForm() {
+            const form = document.getElementById('userForm');
+            const isVisible = form.classList.contains('active');
+            
+            if (isVisible) {
+                form.classList.remove('active');
+                document.getElementById('userFormElement').reset();
+                document.getElementById('editUserId').value = '';
+                document.getElementById('saveUserBtn').textContent = 'Guardar Conductor';
+            } else {
+                form.classList.add('active');
+            }
+            
+            document.getElementById('userFormError').style.display = 'none';
+            document.getElementById('userFormSuccess').style.display = 'none';
+        }
+
+        document.getElementById('userFormElement').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('newUsername').value;
+            const password = document.getElementById('newPassword').value;
+            const fullName = document.getElementById('driverFullName').value;
+            const editId = document.getElementById('editUserId').value;
+            
+            if (!editId && users[username]) {
+                document.getElementById('userFormError').textContent = 'El usuario ya existe';
+                document.getElementById('userFormError').style.display = 'block';
+                return;
+            }
+            
+            if (editId) {
+                // Editing existing user
+                delete users[editId];
+                users[username] = { password, role: 'driver', name: fullName };
+                document.getElementById('userFormSuccess').textContent = 'Usuario actualizado exitosamente';
+            } else {
+                // Creating new user
+                users[username] = { password, role: 'driver', name: fullName };
+                document.getElementById('userFormSuccess').textContent = 'Usuario creado exitosamente';
+            }
+            
+            // Guardar cambios
+            saveData();
+            
+            document.getElementById('userFormSuccess').style.display = 'block';
+            document.getElementById('userFormError').style.display = 'none';
+            
+            setTimeout(() => {
+                toggleUserForm();
+                loadUsersList();
+            }, 1500);
+        });
+
+        function editUser(username) {
+            const user = users[username];
+            document.getElementById('newUsername').value = username;
+            document.getElementById('newPassword').value = user.password;
+            document.getElementById('driverFullName').value = user.name;
+            document.getElementById('editUserId').value = username;
+            document.getElementById('saveUserBtn').textContent = 'Actualizar Conductor';
+            document.getElementById('userForm').classList.add('active');
+        }
+
+        function deleteUser(username) {
+            if (confirm(`¿Estás seguro de eliminar al usuario ${users[username].name}?`)) {
+                delete users[username];
+                
+                // Guardar cambios
+                saveData();
+                
+                loadUsersList();
+                // Remove records for deleted user
+                workRecords = workRecords.filter(record => record.username !== username);
+                
+                // Guardar registros actualizados
+                saveData();
+                
+                loadRecordsTable();
+            }
+        }
+
+        function exportToExcel() {
+            if (workRecords.length === 0) {
+                alert('No hay registros para exportar');
+                return;
+            }
+
+            // Crear HTML para Excel con estilos
+            const currentDate = new Date().toLocaleDateString('es-CO', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            const totalRecords = workRecords.length;
+            const totalDrivers = [...new Set(workRecords.map(record => record.driver))].length;
+            
+            // Calcular totales
+            let totalDayMinutes = 0;
+            let totalNightMinutes = 0;
+            let grandTotalMinutes = 0;
+            
+            workRecords.forEach(record => {
+                totalDayMinutes += (record.dayHours * 60) + record.dayMinutes;
+                totalNightMinutes += (record.nightHours * 60) + record.nightMinutes;
+                grandTotalMinutes += record.totalMinutes;
+            });
+            
+            const totalDayHours = formatDuration(Math.floor(totalDayMinutes / 60), totalDayMinutes % 60);
+            const totalNightHours = formatDuration(Math.floor(totalNightMinutes / 60), totalNightMinutes % 60);
+            const grandTotal = formatDuration(Math.floor(grandTotalMinutes / 60), grandTotalMinutes % 60);
+
+            let html = `
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; position: relative; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .company-name { font-size: 24px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
+        .report-title { font-size: 18px; color: #34495e; margin-bottom: 10px; }
+        .report-info { font-size: 12px; color: #7f8c8d; }
+        .developer-watermark { position: absolute; top: 20px; right: 20px; font-size: 10px; color: #bdc3c7; font-style: italic; }
+        .summary-section { margin: 20px 0; padding: 15px; background-color: #ecf0f1; border-radius: 5px; }
+        .summary-title { font-weight: bold; color: #2c3e50; margin-bottom: 10px; }
+        .summary-stats { display: inline-block; margin-right: 30px; }
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .data-table th { background-color: #3498db; color: white; padding: 12px 8px; text-align: center; font-weight: bold; border: 1px solid #2980b9; }
+        .data-table td { padding: 8px; text-align: center; border: 1px solid #bdc3c7; }
+        .data-table tr:nth-child(even) { background-color: #f8f9fa; }
+        .data-table tr:nth-child(odd) { background-color: white; }
+        .totals-row { background-color: #e8f4fd !important; font-weight: bold; }
+        .totals-row td { border-top: 2px solid #3498db; }
+        .day-hours { color: #f39c12; font-weight: bold; }
+        .night-hours { color: #8e44ad; font-weight: bold; }
+        .total-hours { color: #27ae60; font-weight: bold; }
+        .footer { margin-top: 30px; font-size: 10px; color: #95a5a6; text-align: center; }
+        .footer-signature { margin-top: 10px; font-size: 9px; color: #bdc3c7; text-align: center; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="developer-watermark">💻 Desarrollado por [TU NOMBRE] © 2025</div>
+    <div class="header">
+        <div class="company-name">🚛 SISTEMA DE CONTROL DE CONDUCTORES</div>
+        <div class="report-title">REGISTRO DE ASISTENCIAS Y HORARIOS LABORALES</div>
+        <div class="report-info">Reporte generado el ${currentDate}</div>
+    </div>
+    
+    <div class="summary-section">
+        <div class="summary-title">📊 RESUMEN EJECUTIVO</div>
+        <div class="summary-stats"><strong>Total de Registros:</strong> ${totalRecords}</div>
+        <div class="summary-stats"><strong>Conductores Activos:</strong> ${totalDrivers}</div>
+        <div class="summary-stats"><strong>Período:</strong> ${workRecords[0] ? workRecords[0].date : ''} - ${workRecords[workRecords.length-1] ? workRecords[workRecords.length-1].date : ''}</div>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 200px;">👤 CONDUCTOR</th>
+                <th style="width: 100px;">📅 FECHA</th>
+                <th style="width: 100px;">🕐 HORA INICIO</th>
+                <th style="width: 100px;">🕐 HORA FIN</th>
+                <th style="width: 120px;">🌅 HORAS DIURNAS<br><small>(06:00 - 19:00)</small></th>
+                <th style="width: 120px;">🌙 HORAS NOCTURNAS<br><small>(19:00 - 06:00)</small></th>
+                <th style="width: 120px;">⏱️ TOTAL HORAS</th>
+            </tr>
+        </thead>
+        <tbody>`;
+
+            // Agregar filas de datos
+            workRecords.forEach((record, index) => {
+                const dayTime = formatDuration(record.dayHours, record.dayMinutes);
+                const nightTime = formatDuration(record.nightHours, record.nightMinutes);
+                const totalTime = formatDuration(Math.floor(record.totalMinutes / 60), record.totalMinutes % 60);
+                
+                html += `
+            <tr>
+                <td style="text-align: left; font-weight: bold;">${record.driver}</td>
+                <td>${record.date}</td>
+                <td>${record.startTime}</td>
+                <td>${record.endTime}</td>
+                <td class="day-hours">${dayTime}</td>
+                <td class="night-hours">${nightTime}</td>
+                <td class="total-hours">${totalTime}</td>
+            </tr>`;
+            });
+
+            // Fila de totales
+            html += `
+            <tr class="totals-row">
+                <td style="text-align: left;"><strong>📋 TOTALES GENERALES</strong></td>
+                <td><strong>${totalRecords} registros</strong></td>
+                <td colspan="2"><strong>PERÍODO COMPLETO</strong></td>
+                <td class="day-hours"><strong>${totalDayHours}</strong></td>
+                <td class="night-hours"><strong>${totalNightHours}</strong></td>
+                <td class="total-hours"><strong>${grandTotal}</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="summary-section" style="margin-top: 30px;">
+        <div class="summary-title">📋 INFORMACIÓN ADICIONAL</div>
+        <p><strong>Horario Diurno:</strong> 06:00 AM - 07:00 PM (Hora colombiana)</p>
+        <p><strong>Horario Nocturno:</strong> 07:00 PM - 06:00 AM (Hora colombiana)</p>
+        <p><strong>Sistema:</strong> Control de Asistencias de Conductores v1.0</p>
+    </div>
+
+    <div class="footer">
+        Sistema de Control de Conductores - Reporte generado automáticamente el ${new Date().toLocaleString('es-CO', {timeZone: 'America/Bogota'})} (Hora colombiana)
+    </div>
+    
+    <div class="footer-signature">
+        💻 Sistema desarrollado exclusivamente por [TU NOMBRE] © 2025 - Todos los derechos reservados
+    </div>
+</body>
+</html>`;
+
+            // Crear y descargar el archivo
+            const blob = new Blob([html], { 
+                type: 'application/vnd.ms-excel;charset=utf-8;' 
+            });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `REGISTRO_ASISTENCIAS_CONDUCTORES_${new Date().toISOString().split('T')[0].replace(/-/g, '_')}.xls`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Mostrar mensaje de éxito
+            alert(`📊 Reporte Excel generado exitosamente!\n\n✅ ${totalRecords} registros exportados\n👥 ${totalDrivers} conductores incluidos\n⏱️ Total de horas: ${grandTotal}\n\nArchivo: REGISTRO_ASISTENCIAS_CONDUCTORES_${new Date().toISOString().split('T')[0].replace(/-/g, '_')}.xls`);
+        }
+    </script>
+</body>
+</html>
